@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { Lunar, Solar, HolidayUtil } from 'lunar-javascript';
+import { Lunar, Solar } from 'lunar-javascript';
 
 /**
  * Calculate the next occurrence of a target date.
@@ -13,67 +13,86 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
   let targetDate;
   let displayDate = '';
 
-  if (isLunar) {
-    // Parse Lunar Date
-    const [year, month, day] = date.split('-').map(Number);
-    let lunarDate = Lunar.fromYmd(year, month, day);
-    displayDate = `农历 ${lunarDate.getMonthInChinese()}月${lunarDate.getDayInChinese()}`;
-    
-    // Calculate next occurrence for Lunar
-    const currentLunar = Lunar.fromDate(now.toDate());
-    let nextLunarYear = currentLunar.getYear();
-    
-    // Create a temporary lunar date for this year
-    let nextLunar = Lunar.fromYmd(nextLunarYear, month, day);
-    
-    // If repeat is yearly and date has passed in this lunar year
-    if (repeat === 'yearly') {
-        let nextSolar = nextLunar.getSolar();
-        let nextSolarDate = dayjs(nextSolar.toString());
+  try {
+    if (isLunar) {
+        // Parse Lunar Date
+        const [year, month, day] = date.split('-').map(Number);
+        // Safely create lunar date
+        let lunarDate;
+        try {
+            lunarDate = Lunar.fromYmd(year, month, day);
+        } catch (e) {
+            console.error("Invalid lunar date", date);
+            return { daysRemaining: 0, nextDate: now, displayDate: '日期无效' };
+        }
         
-        if (nextSolarDate.isBefore(now, 'day')) {
-            nextLunar = Lunar.fromYmd(nextLunarYear + 1, month, day);
+        displayDate = `农历 ${lunarDate.getMonthInChinese()}月${lunarDate.getDayInChinese()}`;
+        
+        // Calculate next occurrence for Lunar
+        const currentLunar = Lunar.fromDate(now.toDate());
+        let nextLunarYear = currentLunar.getYear();
+        
+        // Helper to safely get lunar date even if day doesn't exist (e.g. 30th)
+        const getSafeLunar = (y, m, d) => {
+            try {
+                return Lunar.fromYmd(y, m, d);
+            } catch (e) {
+                // Fallback to last day of month if day is invalid (e.g. 30 in a 29-day month)
+                // This is complex, simplified fallback:
+                return Lunar.fromYmd(y, m, 1).next(d - 1); // Might push to next month, imperfect but safe from crash
+            }
+        };
+
+        let nextLunar = getSafeLunar(nextLunarYear, month, day);
+        
+        if (repeat === 'yearly') {
+            let nextSolar = nextLunar.getSolar();
+            let nextSolarDate = dayjs(nextSolar.toString());
+            
+            if (nextSolarDate.isBefore(now, 'day')) {
+                nextLunar = getSafeLunar(nextLunarYear + 1, month, day);
+            }
+            targetDate = dayjs(nextLunar.getSolar().toString());
+        } else if (repeat === 'none') {
+            // One-time event
+             let originalLunar = getSafeLunar(year, month, day);
+             targetDate = dayjs(originalLunar.getSolar().toString());
         }
-        targetDate = dayjs(nextLunar.getSolar().toString());
-    } else if (repeat === 'none') {
-        // One-time event: Convert original lunar date to solar
-        // Note: The input date is the exact date, not reoccurring
-         let originalLunar = Lunar.fromYmd(year, month, day);
-         targetDate = dayjs(originalLunar.getSolar().toString());
-    }
-    
-    // Todo: Handle monthly repeat for lunar if needed (complex due to leap months)
-    
-  } else {
-    // Solar Date
-    let solarDate = dayjs(date);
-    displayDate = solarDate.format('YYYY-MM-DD');
-    
-    if (repeat === 'yearly') {
-        targetDate = solarDate.year(now.year());
-        if (targetDate.isBefore(now, 'day')) {
-            targetDate = targetDate.add(1, 'year');
-        }
-    } else if (repeat === 'monthly') {
-        targetDate = solarDate.year(now.year()).month(now.month());
-        if (targetDate.isBefore(now, 'day')) {
-            targetDate = targetDate.add(1, 'month');
-        }
+        
     } else {
-        targetDate = solarDate;
+        // Solar Date
+        let solarDate = dayjs(date);
+        displayDate = solarDate.format('YYYY-MM-DD');
+        
+        if (repeat === 'yearly') {
+            targetDate = solarDate.year(now.year());
+            if (targetDate.isBefore(now, 'day')) {
+                targetDate = targetDate.add(1, 'year');
+            }
+        } else if (repeat === 'monthly') {
+            targetDate = solarDate.year(now.year()).month(now.month());
+            if (targetDate.isBefore(now, 'day')) {
+                targetDate = targetDate.add(1, 'month');
+            }
+        } else {
+            targetDate = solarDate;
+        }
     }
+
+    // Calculate difference
+    const todayStart = dayjs().startOf('day');
+    const targetStart = targetDate.startOf('day');
+    const daysRemaining = targetStart.diff(todayStart, 'day');
+
+    return {
+        daysRemaining,
+        nextDate: targetDate,
+        displayDate
+    };
+  } catch (error) {
+    console.error("Error in calculateCountdown", error);
+    return { daysRemaining: 0, nextDate: now, displayDate: '计算出错' };
   }
-
-  // Calculate difference
-  const todayStart = dayjs().startOf('day');
-  const targetStart = targetDate.startOf('day');
-  const daysRemaining = targetStart.diff(todayStart, 'day');
-
-  return {
-    daysRemaining,
-    nextDate: targetDate,
-    displayDate
-  };
 };
 
 export const formatDate = (dateString) => {
@@ -86,7 +105,7 @@ export const getChineseHolidays = () => {
         { name: '春节', date: '2000-01-01', isLunar: true },
         { name: '元宵节', date: '2000-01-15', isLunar: true },
         { name: '妇女节', date: '2000-03-08', isLunar: false },
-        { name: '清明节', date: '2000-04-04', isLunar: false }, // Approximate, fix below
+        { name: '清明节', date: '2000-04-05', isLunar: false, isSolarTerm: true }, // Special flag
         { name: '劳动节', date: '2000-05-01', isLunar: false },
         { name: '青年节', date: '2000-05-04', isLunar: false },
         { name: '儿童节', date: '2000-06-01', isLunar: false },
@@ -103,54 +122,63 @@ export const getChineseHolidays = () => {
     return holidays.map(h => {
         let calcResult;
         
-        // Special handling for Qingming (Solar term)
-        if (h.name === '清明节') {
-            const now = dayjs();
-            let year = now.year();
-            let qingmingDate = getQingmingDate(year);
-            if (qingmingDate.isBefore(now, 'day')) {
-                qingmingDate = getQingmingDate(year + 1);
+        if (h.isSolarTerm && h.name === '清明节') {
+            try {
+                const now = dayjs();
+                let year = now.year();
+                let qingmingDate = getQingmingDate(year);
+                if (qingmingDate.isBefore(now, 'day')) {
+                    qingmingDate = getQingmingDate(year + 1);
+                }
+                const todayStart = dayjs().startOf('day');
+                const targetStart = qingmingDate.startOf('day');
+                const daysRemaining = targetStart.diff(todayStart, 'day');
+                
+                calcResult = {
+                    daysRemaining,
+                    nextDate: qingmingDate,
+                    displayDate: qingmingDate.format('YYYY-MM-DD')
+                };
+            } catch (e) {
+                 calcResult = { daysRemaining: 0, nextDate: dayjs(), displayDate: 'Error' };
             }
-            const todayStart = dayjs().startOf('day');
-            const targetStart = qingmingDate.startOf('day');
-            const daysRemaining = targetStart.diff(todayStart, 'day');
-            
-            calcResult = {
-                daysRemaining,
-                nextDate: qingmingDate,
-                displayDate: qingmingDate.format('YYYY-MM-DD')
-            };
         } else {
             calcResult = calculateCountdown(h.date, h.isLunar, 'yearly');
         }
 
         return {
-            id: h.name, // Use name as ID for static holidays
+            id: h.name, 
             title: h.name,
             ...calcResult,
             type: 'holiday',
             isStatic: true 
         };
-    }).sort((a, b) => a.daysRemaining - b.daysRemaining);
+    }).sort((a, b) => {
+        // Sort positive first (future), then negative (past)
+        // But for holidays, usually we want to see what's coming next.
+        // Logic: if remaining < 0, add big number to push to end? 
+        // Or strictly by date.
+        // Let's strictly sort by next occurrence.
+        return a.daysRemaining - b.daysRemaining;
+    }).filter(h => h.displayDate !== 'Error');
 };
 
-// Simplified Qingming calculation
 const getQingmingDate = (year) => {
-    // Using Lunar-javascript to get solar term date accurately
-    // "Pure Brightness" is Qingming
-    // Iterate to find the date
-    // Or just use approximate + check (usually Apr 4 or 5)
-    // Better: create Solar date and check solar term
-    // Let's use simpler approximation or leverage library if possible.
-    // Library has `JieQi` (Solar Terms).
-    
-    // Create a lunar date for April and find Qingming
-    // Actually, simply:
-    const list = Lunar.fromYmd(year, 4, 1).getJieQiTable();
-    // list is Map<string, Solar>
-    const qingmingSolar = list.get('清明');
-    if (qingmingSolar) {
-        return dayjs(qingmingSolar.toString());
+    // Qingming is roughly Apr 4, 5, or 6
+    // Simple lookup or library usage
+    // Using Lunar-javascript Solar Term
+    try {
+        // Find Qingming in the given solar year
+        // Solar.fromYmd(year, 4, 5) usually is close
+        // Let's iterate days in April to find "Qingming" term
+        for (let d = 4; d <= 6; d++) {
+            const solar = Solar.fromYmd(year, 4, d);
+            if (solar.getJieQi() === '清明') {
+                return dayjs(`${year}-04-${d < 10 ? '0' + d : d}`);
+            }
+        }
+        return dayjs(`${year}-04-04`); // Fallback
+    } catch (e) {
+        return dayjs(`${year}-04-05`);
     }
-    return dayjs(`${year}-04-05`); // Fallback
 };

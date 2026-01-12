@@ -30,8 +30,8 @@ const AddEditEvent = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-          alert('图片大小不能超过 2MB');
+      if (file.size > 20 * 1024 * 1024) {
+          alert('图片大小不能超过 20MB');
           return;
       }
       const reader = new FileReader();

@@ -30,7 +30,7 @@ const Home = () => {
 
   return (
     <div 
-        className="min-h-full p-4"
+        className="min-h-full p-4 pb-20"
         style={settings.homeBg ? {
             backgroundImage: `linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url(${settings.homeBg})`,
             backgroundSize: 'cover',
@@ -38,18 +38,19 @@ const Home = () => {
             backgroundAttachment: 'fixed'
         } : {}}
     >
-      <header className="mb-6 mt-2">
-        <h1 className="text-2xl font-bold text-gray-800">记录</h1>
-        <p className="text-gray-500 text-sm">记录每一个重要时刻</p>
+      <header className="mb-8 mt-4">
+        <h1 className="text-3xl font-bold text-gray-800 tracking-tight">记录</h1>
+        <p className="text-gray-500 text-sm mt-1 font-light">记录每一个重要时刻</p>
       </header>
 
       {sortedEvents.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
-            <p>还没有添加倒数日</p>
-            <p className="text-sm mt-2">点击下方 + 号开始记录</p>
+        <div className="text-center py-20">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">✨</div>
+            <p className="text-gray-400 font-medium">还没有添加倒数日</p>
+            <p className="text-sm text-gray-300 mt-2">点击下方 + 号开始记录</p>
         </div>
       ) : (
-        <div>
+        <div className="space-y-4">
           {sortedEvents.map(event => (
             <EventCard key={event.id} event={event} />
           ))}
