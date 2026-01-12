@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useEventContext } from '../context/EventContext';
 import EventCard from '../components/EventCard';
-import { getChineseHolidays } from '../utils/dateUtils';
+import { getChineseHolidays, getWeekRemainingDays } from '../utils/dateUtils';
 import dayjs from 'dayjs';
 
 const Holidays = () => {
@@ -9,7 +9,6 @@ const Holidays = () => {
   const [holidays, setHolidays] = useState([]);
 
   useEffect(() => {
-      // Load holidays in effect to avoid render loop issues if dateUtils is heavy
       setHolidays(getChineseHolidays());
   }, []);
 
@@ -17,12 +16,15 @@ const Holidays = () => {
       const now = dayjs();
       const endOfYear = now.endOf('year');
       const endOfMonth = now.endOf('month');
-      const endOfWeek = now.endOf('week'); 
+      
+      const yearRemaining = endOfYear.diff(now, 'day');
+      const monthRemaining = endOfMonth.diff(now, 'day');
+      const weekRemaining = getWeekRemainingDays();
 
       return {
-          year: endOfYear.diff(now, 'day'),
-          month: endOfMonth.diff(now, 'day'),
-          week: endOfWeek.diff(now, 'day')
+          year: yearRemaining,
+          month: monthRemaining,
+          week: weekRemaining
       };
   }, []);
 

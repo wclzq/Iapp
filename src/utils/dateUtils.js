@@ -1,12 +1,11 @@
 import dayjs from 'dayjs';
 import { Lunar, Solar } from 'lunar-javascript';
 
+// Configure dayjs to treat Monday as start of week if needed, but manual calc is safer without plugins
+// dayjs.locale('zh-cn'); // Requires importing locale
+
 /**
  * Calculate the next occurrence of a target date.
- * @param {string} date - The target date (YYYY-MM-DD)
- * @param {boolean} isLunar - Whether the target date is Lunar
- * @param {string} repeat - 'none', 'yearly', 'monthly'
- * @returns {object} { daysRemaining, nextDate, targetDateFormatted }
  */
 export const calculateCountdown = (date, isLunar, repeat = 'none') => {
   const now = dayjs();
@@ -17,48 +16,52 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
     if (isLunar) {
         // Parse Lunar Date
         const [year, month, day] = date.split('-').map(Number);
-        // Safely create lunar date
-        let lunarDate;
+        
+        // Display string logic
         try {
-            lunarDate = Lunar.fromYmd(year, month, day);
+             // Create a dummy lunar date just for getting the Chinese string
+             let dummyLunar = Lunar.fromYmd(year, month, day); 
+             displayDate = `农历 ${dummyLunar.getMonthInChinese()}月${dummyLunar.getDayInChinese()}`;
         } catch (e) {
-            console.error("Invalid lunar date", date);
-            return { daysRemaining: 0, nextDate: now, displayDate: '日期无效' };
+             displayDate = '农历日期';
         }
-        
-        displayDate = `农历 ${lunarDate.getMonthInChinese()}月${lunarDate.getDayInChinese()}`;
-        
-        // Calculate next occurrence for Lunar
-        const currentLunar = Lunar.fromDate(now.toDate());
-        let nextLunarYear = currentLunar.getYear();
-        
-        // Helper to safely get lunar date even if day doesn't exist (e.g. 30th)
-        const getSafeLunar = (y, m, d) => {
-            try {
-                return Lunar.fromYmd(y, m, d);
-            } catch (e) {
-                // Fallback to last day of month if day is invalid (e.g. 30 in a 29-day month)
-                // This is complex, simplified fallback:
-                return Lunar.fromYmd(y, m, 1).next(d - 1); // Might push to next month, imperfect but safe from crash
-            }
-        };
 
-        let nextLunar = getSafeLunar(nextLunarYear, month, day);
+        // Logic to find next occurrence
+        const currentLunar = Lunar.fromDate(now.toDate());
+        let checkYear = currentLunar.getYear(); // Start checking from current lunar year
         
         if (repeat === 'yearly') {
-            let nextSolar = nextLunar.getSolar();
-            let nextSolarDate = dayjs(nextSolar.toString());
-            
-            if (nextSolarDate.isBefore(now, 'day')) {
-                nextLunar = getSafeLunar(nextLunarYear + 1, month, day);
+            // Check current lunar year, next, and maybe next-next to be safe
+            let found = false;
+            for (let y = checkYear; y <= checkYear + 2; y++) {
+                try {
+                    let l = Lunar.fromYmd(y, month, day);
+                    let s = l.getSolar();
+                    let sDate = dayjs(s.toString());
+                    
+                    // If sDate is today or future
+                    if (sDate.isSame(now, 'day') || sDate.isAfter(now, 'day')) {
+                        targetDate = sDate;
+                        found = true;
+                        break;
+                    }
+                } catch (e) {
+                    // This lunar date might not exist in year y (e.g. leap month or short month)
+                    // If strictly finding specific day (e.g. 30th) and it's missing, maybe check 29th?
+                    // For holidays, usually 1st, 5th, 15th exist.
+                    continue;
+                }
             }
-            targetDate = dayjs(nextLunar.getSolar().toString());
-        } else if (repeat === 'none') {
-            // One-time event
-             let originalLunar = getSafeLunar(year, month, day);
-             targetDate = dayjs(originalLunar.getSolar().toString());
+            if (!found) {
+                // Should not happen for standard holidays
+                targetDate = now; 
+            }
+        } else {
+             // One time
+             let l = Lunar.fromYmd(year, month, day);
+             targetDate = dayjs(l.getSolar().toString());
         }
-        
+
     } else {
         // Solar Date
         let solarDate = dayjs(date);
@@ -66,6 +69,7 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
         
         if (repeat === 'yearly') {
             targetDate = solarDate.year(now.year());
+            // If passed, go to next year
             if (targetDate.isBefore(now, 'day')) {
                 targetDate = targetDate.add(1, 'year');
             }
@@ -79,7 +83,8 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
         }
     }
 
-    // Calculate difference
+    if (!targetDate) targetDate = now;
+
     const todayStart = dayjs().startOf('day');
     const targetStart = targetDate.startOf('day');
     const daysRemaining = targetStart.diff(todayStart, 'day');
@@ -90,8 +95,8 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
         displayDate
     };
   } catch (error) {
-    console.error("Error in calculateCountdown", error);
-    return { daysRemaining: 0, nextDate: now, displayDate: '计算出错' };
+    console.error("Countdown Error", error);
+    return { daysRemaining: 0, nextDate: now, displayDate: '计算错误' };
   }
 };
 
@@ -105,7 +110,7 @@ export const getChineseHolidays = () => {
         { name: '春节', date: '2000-01-01', isLunar: true },
         { name: '元宵节', date: '2000-01-15', isLunar: true },
         { name: '妇女节', date: '2000-03-08', isLunar: false },
-        { name: '清明节', date: '2000-04-05', isLunar: false, isSolarTerm: true }, // Special flag
+        { name: '清明节', date: '2000-04-05', isLunar: false, isSolarTerm: true }, 
         { name: '劳动节', date: '2000-05-01', isLunar: false },
         { name: '青年节', date: '2000-05-04', isLunar: false },
         { name: '儿童节', date: '2000-06-01', isLunar: false },
@@ -153,32 +158,36 @@ export const getChineseHolidays = () => {
             type: 'holiday',
             isStatic: true 
         };
-    }).sort((a, b) => {
-        // Sort positive first (future), then negative (past)
-        // But for holidays, usually we want to see what's coming next.
-        // Logic: if remaining < 0, add big number to push to end? 
-        // Or strictly by date.
-        // Let's strictly sort by next occurrence.
-        return a.daysRemaining - b.daysRemaining;
-    }).filter(h => h.displayDate !== 'Error');
+    }).sort((a, b) => a.daysRemaining - b.daysRemaining);
 };
 
 const getQingmingDate = (year) => {
-    // Qingming is roughly Apr 4, 5, or 6
-    // Simple lookup or library usage
-    // Using Lunar-javascript Solar Term
     try {
-        // Find Qingming in the given solar year
-        // Solar.fromYmd(year, 4, 5) usually is close
-        // Let's iterate days in April to find "Qingming" term
         for (let d = 4; d <= 6; d++) {
             const solar = Solar.fromYmd(year, 4, d);
             if (solar.getJieQi() === '清明') {
                 return dayjs(`${year}-04-${d < 10 ? '0' + d : d}`);
             }
         }
-        return dayjs(`${year}-04-04`); // Fallback
+        return dayjs(`${year}-04-05`); 
     } catch (e) {
         return dayjs(`${year}-04-05`);
     }
+};
+
+export const getWeekRemainingDays = () => {
+    const now = dayjs();
+    // 0(Sun) to 6(Sat)
+    let day = now.day();
+    // Convert to Mon(1) - Sun(7) system
+    // Sun(0) -> 7
+    // Mon(1) -> 1
+    let isoDay = day === 0 ? 7 : day;
+    
+    // Remaining days = 7 - current day (if today is Sunday 7, remaining is 0)
+    // Actually usually "remaining days in week" implies how many days left to enjoy/work?
+    // Usually standard: Days left until Sunday end.
+    // If Mon(1), 6 days left (Tue,Wed,Thu,Fri,Sat,Sun).
+    // If Sun(7), 0 days left.
+    return 7 - isoDay;
 };

@@ -8,17 +8,26 @@ export const useEventContext = () => useContext(EventContext);
 
 export const EventProvider = ({ children }) => {
   const [events, setEvents] = useState([]);
-  const [settings, setSettingsState] = useState({ defaultHome: true });
+  const [settings, setSettingsState] = useState({ defaultHome: true, theme: 'rose' });
   const [memories, setMemories] = useState([]);
 
   useEffect(() => {
     const loadedEvents = getEvents();
     setEvents(loadedEvents);
     const loadedSettings = getSettings();
-    setSettingsState(loadedSettings);
+    setSettingsState(loadedSettings || { defaultHome: true, theme: 'rose' });
     const loadedMemories = getMemories();
     setMemories(loadedMemories);
   }, []);
+  
+  // Apply theme
+  useEffect(() => {
+      if (settings.theme) {
+          document.documentElement.setAttribute('data-theme', settings.theme);
+      } else {
+          document.documentElement.removeAttribute('data-theme');
+      }
+  }, [settings.theme]);
 
   const addEvent = (eventData) => {
     const newEvent = { ...eventData, id: uuidv4(), createdAt: new Date().toISOString() };
@@ -46,8 +55,6 @@ export const EventProvider = ({ children }) => {
   }
 
   const saveMemory = (index, data) => {
-      // Data contains { image, description }
-      // Check if memory exists at index
       const existingIndex = memories.findIndex(m => m.index === index);
       let updatedMemories;
       if (existingIndex >= 0) {

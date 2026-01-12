@@ -18,7 +18,7 @@ const EventCard = ({ event }) => {
 
   const getIcon = () => {
     switch (event.type) {
-      case 'birthday': return <Gift className="w-5 h-5 text-pink-500" />;
+      case 'birthday': return <Gift className="w-5 h-5 text-primary" />;
       case 'anniversary': return <Heart className="w-5 h-5 text-red-500" />;
       case 'holiday': return <Plane className="w-5 h-5 text-blue-500" />;
       default: return <Star className="w-5 h-5 text-yellow-500" />;
@@ -27,7 +27,7 @@ const EventCard = ({ event }) => {
   
   const getTypeBadge = () => {
       if (event.type === 'birthday') {
-          return <span className="bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded text-[10px] ml-1">生日</span>;
+          return <span className="bg-primary-50 text-primary px-1.5 py-0.5 rounded text-[10px] ml-1">生日</span>;
       }
       if (event.type === 'holiday') {
           return <span className="bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded text-[10px] ml-1">节假日</span>;
@@ -42,8 +42,8 @@ const EventCard = ({ event }) => {
     <div 
       onClick={() => navigate(event.isStatic ? '#' : `/event/${event.id}`)}
       className={cn(
-        "relative overflow-hidden rounded-2xl p-4 mb-4 shadow-sm transition-all active:scale-95 cursor-pointer",
-        event.backgroundImage ? "text-white" : "bg-white text-gray-800 border border-gray-100"
+        "relative overflow-hidden rounded-2xl p-4 mb-4 shadow-sm transition-all active:scale-95 cursor-pointer border",
+        event.backgroundImage ? "text-white border-transparent" : "bg-white text-gray-800 border-primary-50"
       )}
       style={event.backgroundImage ? {
         backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(${event.backgroundImage})`,

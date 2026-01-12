@@ -34,17 +34,19 @@ const Memories = () => {
     return set;
   }, []);
 
+  // Ensure memories is an array (fallback)
+  const safeMemories = useMemo(() => Array.isArray(memories) ? memories : [], [memories]);
+
   // Derived state for the active cell's data from context
   const activeMemory = useMemo(() => {
-      if (activeCellIndex === null) return null;
-      return memories.find(m => m.index === activeCellIndex) || {};
-  }, [activeCellIndex, memories]);
+      if (activeCellIndex === null) return {};
+      return safeMemories.find(m => m.index === activeCellIndex) || {};
+  }, [activeCellIndex, safeMemories]);
 
   // When opening a cell, sync tempDescription
   useEffect(() => {
       if (activeCellIndex !== null) {
           setTempDescription(activeMemory.description || '');
-          // If no description, default to editing mode
           if (!activeMemory.description) {
               setIsEditing(true);
           } else {
@@ -60,8 +62,8 @@ const Memories = () => {
   const handleImageUpload = (e) => {
       const file = e.target.files[0];
       if (file) {
-          if (file.size > 2 * 1024 * 1024) {
-              alert('图片太大了，请上传2MB以内的图片');
+          if (file.size > 20* 1024 * 1024) {
+              alert('图片太大了，请上传20MB以内的图片');
               return;
           }
           const reader = new FileReader();
@@ -81,21 +83,22 @@ const Memories = () => {
 
   // Progress
   const totalSlots = validIndices.size;
-  const filledSlots = memories.filter(m => validIndices.has(m.index) && m.image).length;
+  const filledSlots = safeMemories.filter(m => validIndices.has(m.index) && m.image).length;
   const progressPercent = Math.round((filledSlots / totalSlots) * 100);
 
   // Generate grid cells
   const renderGrid = () => {
       const cells = [];
-      for (let i = 0; i < 11 * 10; i++) {
+      // 11 cols * 10 rows
+      for (let i = 0; i < 110; i++) {
           if (validIndices.has(i)) {
-              const memory = memories.find(m => m.index === i);
+              const memory = safeMemories.find(m => m.index === i);
               cells.push(
                   <div 
                     key={i}
                     onClick={() => handleCellClick(i)}
                     className={`aspect-square rounded-md overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-sm border border-white/40 relative ${
-                        memory && memory.image ? '' : 'bg-pink-200/40 hover:bg-pink-300/40 backdrop-blur-sm'
+                        memory && memory.image ? '' : 'bg-primary-200/40 hover:bg-primary-300/40 backdrop-blur-sm'
                     }`}
                   >
                       {memory && memory.image ? (
@@ -114,25 +117,23 @@ const Memories = () => {
 
   return (
     <div 
-        className="min-h-full flex flex-col items-center py-6 px-4"
+        className="min-h-full flex flex-col items-center py-6 px-4 pb-24"
         style={settings.memoriesBg ? {
             backgroundImage: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${settings.memoriesBg})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed'
-        } : {
-            backgroundImage: 'linear-gradient(to bottom right, #fff1f2, #ffe4e6)'
-        }}
+        } : {}}
     >
         {/* Progress Bar */}
         <div className="w-full max-w-xs mb-8">
-            <div className="flex justify-between text-xs text-pink-600 mb-1 font-medium">
+            <div className="flex justify-between text-xs text-primary mb-1 font-medium">
                 <span>我们的一点一滴</span>
                 <span>{filledSlots}/{totalSlots}</span>
             </div>
-            <div className="w-full bg-white/50 rounded-full h-2.5 backdrop-blur-sm overflow-hidden">
+            <div className="w-full bg-white/50 rounded-full h-2.5 backdrop-blur-sm overflow-hidden border border-white/50">
                 <div 
-                    className="bg-gradient-to-r from-pink-400 to-rose-500 h-2.5 rounded-full transition-all duration-1000 ease-out" 
+                    className="bg-primary h-2.5 rounded-full transition-all duration-1000 ease-out" 
                     style={{ width: `${progressPercent}%` }}
                 />
             </div>
@@ -144,11 +145,11 @@ const Memories = () => {
 
         {/* Interaction Area (Modal) */}
         {activeCellIndex !== null && (
-            <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
+            <div className="fixed inset-0 z-50 flex items-end justify-center">
                 {/* Backdrop */}
-                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] pointer-events-auto transition-opacity" onClick={() => setActiveCellIndex(null)} />
+                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] transition-opacity" onClick={() => setActiveCellIndex(null)} />
                 
-                <div className="bg-white w-full max-w-md p-5 rounded-t-3xl shadow-2xl pointer-events-auto animate-slide-up transform transition-transform">
+                <div className="bg-white w-full max-w-md p-5 rounded-t-3xl shadow-2xl z-10 animate-slide-up transform transition-transform">
                     <div className="flex justify-between items-start mb-4">
                         <h3 className="font-bold text-gray-700 text-lg">回忆碎片</h3>
                         <button onClick={() => setActiveCellIndex(null)} className="p-1 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><X size={20} /></button>
@@ -179,7 +180,7 @@ const Memories = () => {
                             {isEditing ? (
                                 <div className="flex-1 flex flex-col">
                                     <textarea 
-                                        className="w-full bg-gray-50 rounded-lg p-3 text-sm border border-gray-100 focus:ring-2 focus:ring-pink-200 focus:border-pink-300 outline-none resize-none flex-1 transition-all" 
+                                        className="w-full bg-gray-50 rounded-lg p-3 text-sm border border-gray-100 focus:ring-2 focus:ring-primary-200 focus:border-primary outline-none resize-none flex-1 transition-all" 
                                         placeholder="记录下这一刻的美好..."
                                         value={tempDescription}
                                         onChange={(e) => setTempDescription(e.target.value)}
@@ -187,7 +188,7 @@ const Memories = () => {
                                         autoFocus
                                     />
                                     <div className="text-right mt-1">
-                                        <button onClick={saveDescription} className="text-xs text-white bg-pink-500 px-3 py-1 rounded-full shadow-sm shadow-pink-200">完成</button>
+                                        <button onClick={saveDescription} className="text-xs text-white bg-primary px-3 py-1 rounded-full shadow-sm">完成</button>
                                     </div>
                                 </div>
                             ) : (
@@ -209,7 +210,7 @@ const Memories = () => {
                     
                     {activeMemory.image && (
                          <div className="mt-5 flex justify-end border-t border-gray-50 pt-3">
-                             <button className="flex items-center gap-1.5 text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-1.5 rounded-full" onClick={() => {
+                             <button className="flex items-center gap-1.5 text-xs text-primary font-medium bg-primary-50 px-3 py-1.5 rounded-full" onClick={() => {
                                  const win = window.open("");
                                  win.document.write(`<body style="margin:0;background:black;display:flex;align-items:center;justify-content:center;height:100vh;"><img src="${activeMemory.image}" style="max-width:100%;max-height:100%;object-fit:contain;" /></body>`);
                              }}>
