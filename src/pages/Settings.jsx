@@ -11,7 +11,7 @@ const Settings = () => {
   const handleImageUpload = (e, key) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
+      if (file.size > 20 * 1024 * 1024) {
           alert('图片大小不能超过 2MB');
           return;
       }
@@ -152,7 +152,7 @@ const Settings = () => {
       </div>
       
       <p className="text-center text-xs text-gray-300 mt-10">
-          Made with ❤️ by Antigravity
+          Made with ❤️ by wangchaolei
       </p>
     </div>
   );
