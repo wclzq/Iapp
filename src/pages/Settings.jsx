@@ -172,13 +172,13 @@ const Settings = () => {
               <Info className="text-gray-400" size={20} />
               <div>
                   <h3 className="text-gray-700">关于</h3>
-                  <p className="text-xs text-gray-400">Moment Countdown v1.3.0</p>
+                  <p className="text-xs text-gray-400">记录 v1.3.0</p>
               </div>
           </div>
       </div>
       
       <p className="text-center text-xs text-gray-300 mt-10">
-          Made with ❤️ by Antigravity
+          Made with ❤️ by wangchaolei
       </p>
     </div>
   );

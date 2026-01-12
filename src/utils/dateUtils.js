@@ -1,5 +1,9 @@
 import dayjs from 'dayjs';
-import { Lunar, Solar } from 'lunar-javascript';
+import * as LunarJS from 'lunar-javascript';
+
+// Handle different import styles
+const Lunar = LunarJS.Lunar || LunarJS.default?.Lunar || LunarJS;
+const Solar = LunarJS.Solar || LunarJS.default?.Solar;
 
 /**
  * Calculate the next occurrence of a target date.
@@ -34,8 +38,10 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
                     let sDate = dayjs(s.toString());
                     
                     // If sDate is AFTER now (strictly future) OR SAME day
-                    // Note: 'day' comparison ignores time.
-                    if (sDate.isSame(now, 'day') || sDate.isAfter(now, 'day')) {
+                    const sDateStart = sDate.startOf('day');
+                    const nowStart = now.startOf('day');
+                    
+                    if (sDateStart.isAfter(nowStart) || sDateStart.isSame(nowStart)) {
                         targetDate = sDate;
                         found = true;
                         break;
@@ -44,7 +50,7 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
                     continue;
                 }
             }
-            if (!found) targetDate = now; // Should not happen
+            if (!found) targetDate = now; 
         } else {
              // One time
              let l = Lunar.fromYmd(year, month, day);
@@ -58,7 +64,7 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
         
         if (repeat === 'yearly') {
             targetDate = solarDate.year(now.year());
-            // If strictly before today, add 1 year
+            // If strictly before today
             if (targetDate.isBefore(now, 'day')) {
                 targetDate = targetDate.add(1, 'year');
             }
@@ -74,7 +80,7 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
 
     if (!targetDate) targetDate = now;
 
-    // Fix: Ensure targetDate is valid dayjs object
+    // Ensure valid object
     if (!dayjs.isDayjs(targetDate)) targetDate = dayjs(targetDate);
 
     const todayStart = dayjs().startOf('day');
@@ -87,8 +93,8 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
         displayDate
     };
   } catch (error) {
-    console.error("Countdown Error", error);
-    return { daysRemaining: 0, nextDate: now, displayDate: '计算错误' };
+    // Return error message in displayDate to debug on UI
+    return { daysRemaining: 0, nextDate: now, displayDate: 'Err: ' + error.message };
   }
 };
 
@@ -137,7 +143,7 @@ export const getChineseHolidays = () => {
                     displayDate: qingmingDate.format('YYYY-MM-DD')
                 };
             } catch (e) {
-                 calcResult = { daysRemaining: 0, nextDate: dayjs(), displayDate: 'Error' };
+                 calcResult = { daysRemaining: 0, nextDate: dayjs(), displayDate: 'Err: ' + e.message };
             }
         } else {
             calcResult = calculateCountdown(h.date, h.isLunar, 'yearly');
