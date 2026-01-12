@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useEventContext } from '../context/EventContext';
-import { Heart, Maximize2, X, Upload } from 'lucide-react';
+import { Heart, Maximize2, X, Upload, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
 
 const Memories = () => {
   const { memories, saveMemory, settings } = useEventContext();
   const [activeCellIndex, setActiveCellIndex] = useState(null); 
   const [tempDescription, setTempDescription] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState(null);
   const fileInputRef = useRef(null);
   
   // Grid config
@@ -34,35 +35,54 @@ const Memories = () => {
     return set;
   }, []);
 
-  // Ensure memories is an array (fallback)
   const safeMemories = useMemo(() => Array.isArray(memories) ? memories : [], [memories]);
 
-  // Derived state for the active cell's data from context
   const activeMemory = useMemo(() => {
       if (activeCellIndex === null) return {};
       return safeMemories.find(m => m.index === activeCellIndex) || {};
   }, [activeCellIndex, safeMemories]);
 
-  // When opening a cell, sync tempDescription
   useEffect(() => {
       if (activeCellIndex !== null) {
           setTempDescription(activeMemory.description || '');
-          if (!activeMemory.description) {
-              setIsEditing(true);
-          } else {
-              setIsEditing(false);
-          }
       }
   }, [activeCellIndex, activeMemory.description]);
 
-  const handleCellClick = (index) => {
+  const handleTouchStart = (index) => {
+      const timer = setTimeout(() => {
+          handleLongPress(index);
+      }, 600);
+      setLongPressTimer(timer);
+  }
+
+  const handleTouchEnd = () => {
+      if (longPressTimer) clearTimeout(longPressTimer);
+  }
+
+  const handleLongPress = (index) => {
+      if (longPressTimer) clearTimeout(longPressTimer);
+      // Long press triggers edit mode
       setActiveCellIndex(index);
+      setIsEditing(true);
+  }
+
+  const handleCellClick = (index) => {
+      if (longPressTimer) clearTimeout(longPressTimer);
+      // Short click
+      setActiveCellIndex(index);
+      // If empty, go to edit
+      const memory = safeMemories.find(m => m.index === index);
+      if (!memory || !memory.image) {
+          setIsEditing(true);
+      } else {
+          setIsEditing(false); // View mode
+      }
   };
 
   const handleImageUpload = (e) => {
       const file = e.target.files[0];
       if (file) {
-          if (file.size > 20* 1024 * 1024) {
+          if (file.size > 20 * 1024 * 1024) { // 20MB limit
               alert('图片太大了，请上传20MB以内的图片');
               return;
           }
@@ -77,8 +97,35 @@ const Memories = () => {
   const saveDescription = () => {
       if (activeCellIndex !== null) {
         saveMemory(activeCellIndex, { description: tempDescription });
-        setIsEditing(false);
+        setIsEditing(false); // Switch to view mode after save
       }
+  }
+
+  const navigateMemory = (direction) => {
+      if (activeCellIndex === null) return;
+      
+      // Find all filled indices
+      const filledIndices = safeMemories.filter(m => m.image && validIndices.has(m.index))
+                                        .map(m => m.index)
+                                        .sort((a, b) => a - b);
+      
+      if (filledIndices.length === 0) return;
+
+      const currentPos = filledIndices.indexOf(activeCellIndex);
+      let nextIndex;
+      
+      if (currentPos === -1) {
+          // Current cell empty, go to first filled?
+          nextIndex = filledIndices[0];
+      } else {
+          if (direction === 'next') {
+              nextIndex = filledIndices[(currentPos + 1) % filledIndices.length];
+          } else {
+              nextIndex = filledIndices[(currentPos - 1 + filledIndices.length) % filledIndices.length];
+          }
+      }
+      setActiveCellIndex(nextIndex);
+      setIsEditing(false);
   }
 
   // Progress
@@ -86,19 +133,22 @@ const Memories = () => {
   const filledSlots = safeMemories.filter(m => validIndices.has(m.index) && m.image).length;
   const progressPercent = Math.round((filledSlots / totalSlots) * 100);
 
-  // Generate grid cells
   const renderGrid = () => {
       const cells = [];
-      // 11 cols * 10 rows
       for (let i = 0; i < 110; i++) {
           if (validIndices.has(i)) {
               const memory = safeMemories.find(m => m.index === i);
               cells.push(
                   <div 
                     key={i}
+                    onMouseDown={() => handleTouchStart(i)}
+                    onMouseUp={handleTouchEnd}
+                    onMouseLeave={handleTouchEnd}
+                    onTouchStart={() => handleTouchStart(i)}
+                    onTouchEnd={handleTouchEnd}
                     onClick={() => handleCellClick(i)}
                     className={`aspect-square rounded-md overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-sm border border-white/40 relative ${
-                        memory && memory.image ? '' : 'bg-primary-200/40 hover:bg-primary-300/40 backdrop-blur-sm'
+                        memory && memory.image ? '' : 'bg-pink-300/60 backdrop-blur-sm'
                     }`}
                   >
                       {memory && memory.image ? (
@@ -139,86 +189,90 @@ const Memories = () => {
             </div>
         </div>
 
-        <div className="grid grid-cols-11 gap-1 w-full max-w-sm">
+        <div className="grid grid-cols-11 gap-1 w-full max-w-sm select-none">
             {renderGrid()}
         </div>
 
-        {/* Interaction Area (Modal) */}
+        {/* Modal */}
         {activeCellIndex !== null && (
-            <div className="fixed inset-0 z-50 flex items-end justify-center">
-                {/* Backdrop */}
-                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] transition-opacity" onClick={() => setActiveCellIndex(null)} />
-                
-                <div className="bg-white w-full max-w-md p-5 rounded-t-3xl shadow-2xl z-10 animate-slide-up transform transition-transform">
-                    <div className="flex justify-between items-start mb-4">
-                        <h3 className="font-bold text-gray-700 text-lg">回忆碎片</h3>
-                        <button onClick={() => setActiveCellIndex(null)} className="p-1 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><X size={20} /></button>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <div 
-                            className="w-28 h-28 bg-gray-50 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center cursor-pointer relative group border border-gray-100 shadow-inner"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            {activeMemory.image ? (
-                                <>
-                                    <img src={activeMemory.image} className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Upload className="text-white" size={24} />
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center text-gray-300">
-                                    <Upload size={24} />
-                                    <span className="text-[10px] mt-1">上传照片</span>
-                                </div>
-                            )}
-                        </div>
-                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-
-                        <div className="flex-1 flex flex-col">
-                            {isEditing ? (
-                                <div className="flex-1 flex flex-col">
-                                    <textarea 
-                                        className="w-full bg-gray-50 rounded-lg p-3 text-sm border border-gray-100 focus:ring-2 focus:ring-primary-200 focus:border-primary outline-none resize-none flex-1 transition-all" 
-                                        placeholder="记录下这一刻的美好..."
-                                        value={tempDescription}
-                                        onChange={(e) => setTempDescription(e.target.value)}
-                                        onBlur={saveDescription}
-                                        autoFocus
-                                    />
-                                    <div className="text-right mt-1">
-                                        <button onClick={saveDescription} className="text-xs text-white bg-primary px-3 py-1 rounded-full shadow-sm">完成</button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div 
-                                    onClick={() => setIsEditing(true)} 
-                                    className="flex-1 cursor-text"
-                                >
-                                    {tempDescription ? (
-                                        <p className="text-sm text-gray-700 leading-relaxed">
-                                            {tempDescription}
-                                        </p>
-                                    ) : (
-                                        <p className="text-sm text-gray-400 italic">点击添加描述...</p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    
-                    {activeMemory.image && (
-                         <div className="mt-5 flex justify-end border-t border-gray-50 pt-3">
-                             <button className="flex items-center gap-1.5 text-xs text-primary font-medium bg-primary-50 px-3 py-1.5 rounded-full" onClick={() => {
-                                 const win = window.open("");
-                                 win.document.write(`<body style="margin:0;background:black;display:flex;align-items:center;justify-content:center;height:100vh;"><img src="${activeMemory.image}" style="max-width:100%;max-height:100%;object-fit:contain;" /></body>`);
-                             }}>
-                                 <Maximize2 size={14} /> 查看大图
-                             </button>
-                         </div>
-                    )}
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
+                <div className="absolute top-4 right-4 z-50">
+                    <button onClick={() => setActiveCellIndex(null)} className="p-2 bg-white/20 rounded-full text-white hover:bg-white/30"><X size={24} /></button>
                 </div>
+
+                {!isEditing ? (
+                    // View Mode
+                    <div className="w-full h-full flex flex-col items-center justify-center p-4 relative" onClick={(e) => e.target === e.currentTarget && setActiveCellIndex(null)}>
+                        {/* Navigation Areas */}
+                        <div className="absolute left-0 top-0 bottom-0 w-1/4 z-10" onClick={() => navigateMemory('prev')} />
+                        <div className="absolute right-0 top-0 bottom-0 w-1/4 z-10" onClick={() => navigateMemory('next')} />
+
+                        <div className="relative max-w-lg w-full aspect-[3/4] flex flex-col items-center justify-center">
+                            {activeMemory.image ? (
+                                <img src={activeMemory.image} className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl" />
+                            ) : (
+                                <div className="text-white/50">暂无图片</div>
+                            )}
+                        </div>
+                        
+                        <div className="mt-6 text-white text-center max-w-md px-4">
+                            <p className="text-lg font-medium leading-relaxed drop-shadow-md">
+                                {activeMemory.description || <span className="opacity-50 text-sm">没有描述...</span>}
+                            </p>
+                        </div>
+
+                        <button 
+                            onClick={() => setIsEditing(true)}
+                            className="absolute bottom-10 right-10 p-3 bg-white/20 rounded-full text-white backdrop-blur-md hover:bg-white/30 z-20"
+                        >
+                            <Edit2 size={20} />
+                        </button>
+                    </div>
+                ) : (
+                    // Edit Mode
+                    <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-2xl m-4 animate-slide-up">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-gray-800 text-lg">编辑回忆</h3>
+                            <button onClick={() => setIsEditing(false)} className="text-sm text-gray-500">取消</button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div 
+                                className="w-full aspect-video bg-gray-100 rounded-xl flex items-center justify-center cursor-pointer relative group overflow-hidden border-2 border-dashed border-gray-300 hover:border-primary"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                {activeMemory.image ? (
+                                    <>
+                                        <img src={activeMemory.image} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="text-white font-medium flex items-center gap-2"><Upload size={20}/> 更换照片</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center text-gray-400">
+                                        <Upload size={32} />
+                                        <span className="text-sm mt-2">点击上传照片 (最大20MB)</span>
+                                    </div>
+                                )}
+                            </div>
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
+                                <textarea 
+                                    className="w-full bg-gray-50 rounded-xl p-3 text-sm border-none focus:ring-2 focus:ring-primary/50 resize-none h-32" 
+                                    placeholder="写下这一刻的故事..."
+                                    value={tempDescription}
+                                    onChange={(e) => setTempDescription(e.target.value)}
+                                />
+                            </div>
+
+                            <button onClick={saveDescription} className="w-full bg-primary text-white py-3 rounded-xl font-bold shadow-lg shadow-primary/30 active:scale-95 transition-transform">
+                                保存
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         )}
     </div>

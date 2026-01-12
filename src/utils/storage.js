@@ -1,52 +1,60 @@
+import localforage from 'localforage';
+
+localforage.config({
+  name: 'MomentApp',
+  storeName: 'moment_data'
+});
+
 const STORAGE_KEY = 'moment_events';
 const SETTINGS_KEY = 'moment_settings';
 const MEMORIES_KEY = 'moment_memories';
 
-export const getEvents = () => {
+// Async functions now
+export const getEvents = async () => {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    const data = await localforage.getItem(STORAGE_KEY);
+    return data || [];
   } catch (error) {
     console.error('Error reading events', error);
     return [];
   }
 };
 
-export const saveEvents = (events) => {
+export const saveEvents = async (events) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    await localforage.setItem(STORAGE_KEY, events);
   } catch (error) {
     console.error('Error saving events', error);
-    alert('存储空间不足，无法保存更多数据 (特别是大图片)');
+    alert('存储出错: ' + error.message);
   }
 };
 
-export const getSettings = () => {
+export const getSettings = async () => {
   try {
-    const data = localStorage.getItem(SETTINGS_KEY);
-    return data ? JSON.parse(data) : { defaultHome: true };
+    const data = await localforage.getItem(SETTINGS_KEY);
+    return data || { defaultHome: true, theme: 'rose' };
   } catch (error) {
-    return { defaultHome: true };
+    return { defaultHome: true, theme: 'rose' };
   }
 };
 
-export const saveSettings = (settings) => {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+export const saveSettings = async (settings) => {
+  await localforage.setItem(SETTINGS_KEY, settings);
 };
 
-export const getMemories = () => {
+export const getMemories = async () => {
   try {
-    const data = localStorage.getItem(MEMORIES_KEY);
-    return data ? JSON.parse(data) : [];
+    const data = await localforage.getItem(MEMORIES_KEY);
+    return data || [];
   } catch (error) {
     return [];
   }
 };
 
-export const saveMemories = (memories) => {
+export const saveMemories = async (memories) => {
   try {
-    localStorage.setItem(MEMORIES_KEY, JSON.stringify(memories));
+    await localforage.setItem(MEMORIES_KEY, memories);
   } catch (error) {
-      alert('存储空间不足，无法保存照片');
+      alert('无法保存照片，可能是存储空间已满');
   }
 };

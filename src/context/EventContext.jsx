@@ -10,14 +10,22 @@ export const EventProvider = ({ children }) => {
   const [events, setEvents] = useState([]);
   const [settings, setSettingsState] = useState({ defaultHome: true, theme: 'rose' });
   const [memories, setMemories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadedEvents = getEvents();
-    setEvents(loadedEvents);
-    const loadedSettings = getSettings();
-    setSettingsState(loadedSettings || { defaultHome: true, theme: 'rose' });
-    const loadedMemories = getMemories();
-    setMemories(loadedMemories);
+    const loadData = async () => {
+        const loadedEvents = await getEvents();
+        setEvents(loadedEvents);
+        
+        const loadedSettings = await getSettings();
+        setSettingsState(loadedSettings || { defaultHome: true, theme: 'rose' });
+        
+        const loadedMemories = await getMemories();
+        setMemories(loadedMemories);
+        
+        setLoading(false);
+    };
+    loadData();
   }, []);
   
   // Apply theme
@@ -65,6 +73,10 @@ export const EventProvider = ({ children }) => {
       }
       setMemories(updatedMemories);
       saveMemories(updatedMemories);
+  }
+
+  if (loading) {
+      return <div className="h-screen w-full flex items-center justify-center text-gray-400">加载中...</div>;
   }
 
   return (

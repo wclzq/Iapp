@@ -1,9 +1,6 @@
 import dayjs from 'dayjs';
 import { Lunar, Solar } from 'lunar-javascript';
 
-// Configure dayjs to treat Monday as start of week if needed, but manual calc is safer without plugins
-// dayjs.locale('zh-cn'); // Requires importing locale
-
 /**
  * Calculate the next occurrence of a target date.
  */
@@ -17,45 +14,37 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
         // Parse Lunar Date
         const [year, month, day] = date.split('-').map(Number);
         
-        // Display string logic
         try {
-             // Create a dummy lunar date just for getting the Chinese string
              let dummyLunar = Lunar.fromYmd(year, month, day); 
              displayDate = `农历 ${dummyLunar.getMonthInChinese()}月${dummyLunar.getDayInChinese()}`;
         } catch (e) {
              displayDate = '农历日期';
         }
 
-        // Logic to find next occurrence
         const currentLunar = Lunar.fromDate(now.toDate());
-        let checkYear = currentLunar.getYear(); // Start checking from current lunar year
+        let checkYear = currentLunar.getYear(); 
         
         if (repeat === 'yearly') {
-            // Check current lunar year, next, and maybe next-next to be safe
             let found = false;
+            // Check current lunar year and next 2 years
             for (let y = checkYear; y <= checkYear + 2; y++) {
                 try {
                     let l = Lunar.fromYmd(y, month, day);
                     let s = l.getSolar();
                     let sDate = dayjs(s.toString());
                     
-                    // If sDate is today or future
+                    // If sDate is AFTER now (strictly future) OR SAME day
+                    // Note: 'day' comparison ignores time.
                     if (sDate.isSame(now, 'day') || sDate.isAfter(now, 'day')) {
                         targetDate = sDate;
                         found = true;
                         break;
                     }
                 } catch (e) {
-                    // This lunar date might not exist in year y (e.g. leap month or short month)
-                    // If strictly finding specific day (e.g. 30th) and it's missing, maybe check 29th?
-                    // For holidays, usually 1st, 5th, 15th exist.
                     continue;
                 }
             }
-            if (!found) {
-                // Should not happen for standard holidays
-                targetDate = now; 
-            }
+            if (!found) targetDate = now; // Should not happen
         } else {
              // One time
              let l = Lunar.fromYmd(year, month, day);
@@ -69,7 +58,7 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
         
         if (repeat === 'yearly') {
             targetDate = solarDate.year(now.year());
-            // If passed, go to next year
+            // If strictly before today, add 1 year
             if (targetDate.isBefore(now, 'day')) {
                 targetDate = targetDate.add(1, 'year');
             }
@@ -84,6 +73,9 @@ export const calculateCountdown = (date, isLunar, repeat = 'none') => {
     }
 
     if (!targetDate) targetDate = now;
+
+    // Fix: Ensure targetDate is valid dayjs object
+    if (!dayjs.isDayjs(targetDate)) targetDate = dayjs(targetDate);
 
     const todayStart = dayjs().startOf('day');
     const targetStart = targetDate.startOf('day');
@@ -177,17 +169,9 @@ const getQingmingDate = (year) => {
 
 export const getWeekRemainingDays = () => {
     const now = dayjs();
-    // 0(Sun) to 6(Sat)
     let day = now.day();
-    // Convert to Mon(1) - Sun(7) system
-    // Sun(0) -> 7
-    // Mon(1) -> 1
+    // Mon(1) ... Sun(0)
+    // Convert to 1..7 (Mon..Sun)
     let isoDay = day === 0 ? 7 : day;
-    
-    // Remaining days = 7 - current day (if today is Sunday 7, remaining is 0)
-    // Actually usually "remaining days in week" implies how many days left to enjoy/work?
-    // Usually standard: Days left until Sunday end.
-    // If Mon(1), 6 days left (Tue,Wed,Thu,Fri,Sat,Sun).
-    // If Sun(7), 0 days left.
     return 7 - isoDay;
 };
