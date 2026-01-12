@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'moment_events';
 const SETTINGS_KEY = 'moment_settings';
+const MEMORIES_KEY = 'moment_memories';
 
 export const getEvents = () => {
   try {
@@ -31,4 +32,21 @@ export const getSettings = () => {
 
 export const saveSettings = (settings) => {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+};
+
+export const getMemories = () => {
+  try {
+    const data = localStorage.getItem(MEMORIES_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    return [];
+  }
+};
+
+export const saveMemories = (memories) => {
+  try {
+    localStorage.setItem(MEMORIES_KEY, JSON.stringify(memories));
+  } catch (error) {
+      alert('存储空间不足，无法保存照片');
+  }
 };

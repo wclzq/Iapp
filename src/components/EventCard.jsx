@@ -24,10 +24,23 @@ const EventCard = ({ event }) => {
       default: return <Star className="w-5 h-5 text-yellow-500" />;
     }
   };
+  
+  const getTypeBadge = () => {
+      if (event.type === 'birthday') {
+          return <span className="bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded text-[10px] ml-1">生日</span>;
+      }
+      if (event.type === 'holiday') {
+          return <span className="bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded text-[10px] ml-1">节假日</span>;
+      }
+      if (event.type === 'anniversary') {
+          return <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[10px] ml-1">纪念日</span>;
+      }
+      return null;
+  };
 
   return (
     <div 
-      onClick={() => navigate(`/event/${event.id}`)}
+      onClick={() => navigate(event.isStatic ? '#' : `/event/${event.id}`)}
       className={cn(
         "relative overflow-hidden rounded-2xl p-4 mb-4 shadow-sm transition-all active:scale-95 cursor-pointer",
         event.backgroundImage ? "text-white" : "bg-white text-gray-800 border border-gray-100"
@@ -48,7 +61,15 @@ const EventCard = ({ event }) => {
           <div className={cn("text-xs opacity-80 flex items-center gap-1", event.backgroundImage ? "text-gray-200" : "text-gray-500")}>
              <Calendar className="w-3 h-3" /> {displayDate} 
              {event.isLunar && <span className="bg-orange-100 text-orange-600 px-1 rounded text-[10px] ml-1">农</span>}
+             {!event.backgroundImage && getTypeBadge()}
           </div>
+          
+          {/* Badge for image background */}
+          {event.backgroundImage && (
+              <div className="mt-1 flex">
+                 {getTypeBadge()}
+              </div>
+          )}
         </div>
         
         <div className="text-right">

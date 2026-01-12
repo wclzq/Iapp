@@ -37,7 +37,6 @@ jobs:
 
       - name: Add Android Platform
         run: |
-          npm install @capacitor/android
           node node_modules/@capacitor/cli/bin/capacitor add android
           node node_modules/@capacitor/cli/bin/capacitor sync
 

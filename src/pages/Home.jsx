@@ -29,7 +29,15 @@ const Home = () => {
   }, [events]);
 
   return (
-    <div className="p-4">
+    <div 
+        className="min-h-full p-4"
+        style={settings.homeBg ? {
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url(${settings.homeBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed'
+        } : {}}
+    >
       <header className="mb-6 mt-2">
         <h1 className="text-2xl font-bold text-gray-800">记录</h1>
         <p className="text-gray-500 text-sm">记录每一个重要时刻</p>

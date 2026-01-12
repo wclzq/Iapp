@@ -25,7 +25,7 @@ git add .
 git commit -m "Initial commit"
 
 # 关联远程仓库 (请把下面的 URL 换成你刚才在 GitHub 创建的仓库地址)
-git remote add origin https://github.com/YOUR_USERNAME/moment-app.git
+git remote add origin https://github.com/wclzq/Iapp.git
 
 # 推送代码
 git push -u origin master

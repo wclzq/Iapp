@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import AddEditEvent from './pages/AddEditEvent';
 import EventDetail from './pages/EventDetail';
 import Settings from './pages/Settings';
+import Holidays from './pages/Holidays';
+import Memories from './pages/Memories';
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="holidays" element={<Holidays />} />
+            <Route path="memories" element={<Memories />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="/add" element={<AddEditEvent />} />
