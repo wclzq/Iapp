@@ -91,9 +91,9 @@ const AddEditEvent = () => {
         <button onClick={() => navigate(-1)} className="p-1">
           <ChevronLeft size={24} />
         </button>
-        <h1 className="flex-1 text-center font-bold text-lg">{isEditing ? '?????' : '?????'}</h1>
+        <h1 className="flex-1 text-center font-bold text-lg">{isEditing ? '编辑倒数日' : '添加倒数日'}</h1>
         <button onClick={handleSubmit} className="text-indigo-600 font-bold text-sm px-2">
-          {isEditing ? '??' : '??'}
+          {isEditing ? '更新' : '保存'}
         </button>
       </div>
 
