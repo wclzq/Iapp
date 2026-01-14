@@ -49,10 +49,9 @@ const EventDetail = () => {
               <ChevronLeft size={24} />
           </button>
           <div className="flex gap-3">
-              {/* Edit feature can be added later, reuse AddEditEvent with initial data */}
-              {/* <button className="p-2 bg-white/10 rounded-full backdrop-blur-sm">
+              <button onClick={() => navigate(`/edit/${event.id}`)} className="p-2 bg-white/10 rounded-full backdrop-blur-sm">
                   <Edit2 size={20} />
-              </button> */}
+              </button>
               <button onClick={handleDelete} className="p-2 bg-white/10 rounded-full backdrop-blur-sm text-red-300">
                   <Trash2 size={20} />
               </button>

@@ -5,7 +5,7 @@ import { clsx } from 'clsx';
 
 const Layout = () => {
   const location = useLocation();
-  const hideNav = location.pathname.startsWith('/event') || location.pathname === '/add';
+  const hideNav = location.pathname.startsWith('/event') || location.pathname === '/add' || location.pathname.startsWith('/edit');
 
   return (
     <div className="min-h-screen bg-page flex flex-col transition-colors duration-300">

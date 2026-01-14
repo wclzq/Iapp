@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useEventContext } from '../context/EventContext';
 import { Heart, Maximize2, X, Upload, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { buildBackgroundStyle } from '../utils/backgroundStyle';
 
 const Memories = () => {
   const { memories, saveMemory, settings } = useEventContext();
@@ -165,15 +166,14 @@ const Memories = () => {
       return cells;
   };
 
+  const pageStyle = buildBackgroundStyle(settings.memoriesBg, {
+    overlayStart: 'rgba(255,255,255,0.7)',
+  });
+
   return (
     <div 
-        className="min-h-full flex flex-col items-center py-6 px-4 pb-24"
-        style={settings.memoriesBg ? {
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${settings.memoriesBg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed'
-        } : {}}
+        className="min-h-screen flex flex-col items-center py-6 px-4 pb-24"
+        style={pageStyle}
     >
         {/* Progress Bar */}
         <div className="w-full max-w-xs mb-8">

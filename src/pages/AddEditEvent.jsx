@@ -1,15 +1,16 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEventContext } from '../context/EventContext';
 import { ChevronLeft, Image as ImageIcon, X } from 'lucide-react';
-import { Solar } from 'lunar-javascript';
 
 const AddEditEvent = () => {
   const navigate = useNavigate();
-  const { addEvent } = useEventContext();
+  const { id } = useParams();
+  const { addEvent, updateEvent, events } = useEventContext();
   const fileInputRef = useRef(null);
+  const isEditing = Boolean(id);
 
-  const [formData, setFormData] = useState({
+  const createEmptyForm = () => ({
     title: '',
     date: new Date().toISOString().split('T')[0],
     isLunar: false,
@@ -18,6 +19,27 @@ const AddEditEvent = () => {
     backgroundImage: '',
     topSticky: false
   });
+
+  const [formData, setFormData] = useState(createEmptyForm);
+
+  const existingEvent = isEditing ? events.find(e => e.id === id) : null;
+
+  useEffect(() => {
+      if (!isEditing) return;
+      if (!existingEvent) {
+          navigate('/');
+          return;
+      }
+      setFormData({
+          title: existingEvent.title || '',
+          date: existingEvent.date || new Date().toISOString().split('T')[0],
+          isLunar: Boolean(existingEvent.isLunar),
+          type: existingEvent.type || 'birthday',
+          repeat: existingEvent.repeat || 'none',
+          backgroundImage: existingEvent.backgroundImage || '',
+          topSticky: Boolean(existingEvent.topSticky)
+      });
+  }, [isEditing, existingEvent, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -54,7 +76,11 @@ const AddEditEvent = () => {
         return;
     }
     
-    addEvent(formData);
+    if (isEditing) {
+        updateEvent(id, formData);
+    } else {
+        addEvent(formData);
+    }
     navigate('/');
   };
 
@@ -65,9 +91,9 @@ const AddEditEvent = () => {
         <button onClick={() => navigate(-1)} className="p-1">
           <ChevronLeft size={24} />
         </button>
-        <h1 className="flex-1 text-center font-bold text-lg">添加倒数日</h1>
+        <h1 className="flex-1 text-center font-bold text-lg">{isEditing ? '?????' : '?????'}</h1>
         <button onClick={handleSubmit} className="text-indigo-600 font-bold text-sm px-2">
-          保存
+          {isEditing ? '??' : '??'}
         </button>
       </div>
 

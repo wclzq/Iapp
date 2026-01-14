@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useEventContext } from '../context/EventContext';
 import EventCard from '../components/EventCard';
 import { calculateCountdown } from '../utils/dateUtils';
+import { buildBackgroundStyle } from '../utils/backgroundStyle';
 
 const Home = () => {
   const { events, settings } = useEventContext();
@@ -28,15 +29,14 @@ const Home = () => {
     });
   }, [events]);
 
+  const pageStyle = buildBackgroundStyle(settings.homeBg, {
+    overlayStart: 'rgba(255,255,255,0.8)',
+  });
+
   return (
     <div 
-        className="min-h-full p-4 pb-20"
-        style={settings.homeBg ? {
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url(${settings.homeBg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed'
-        } : {}}
+        className="min-h-screen p-4 pb-20"
+        style={pageStyle}
     >
       <header className="mb-8 mt-4">
         <h1 className="text-3xl font-bold text-gray-800 tracking-tight">记录</h1>

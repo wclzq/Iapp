@@ -18,11 +18,12 @@ function App() {
             <Route index element={<Home />} />
             <Route path="holidays" element={<Holidays />} />
             <Route path="memories" element={<Memories />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-          <Route path="/add" element={<AddEditEvent />} />
-          <Route path="/event/:id" element={<EventDetail />} />
-        </Routes>
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        <Route path="/add" element={<AddEditEvent />} />
+        <Route path="/edit/:id" element={<AddEditEvent />} />
+        <Route path="/event/:id" element={<EventDetail />} />
+      </Routes>
       </BrowserRouter>
     </EventProvider>
   );

@@ -3,6 +3,7 @@ import { useEventContext } from '../context/EventContext';
 import EventCard from '../components/EventCard';
 import { getChineseHolidays, getWeekRemainingDays } from '../utils/dateUtils';
 import dayjs from 'dayjs';
+import { buildBackgroundStyle } from '../utils/backgroundStyle';
 
 const Holidays = () => {
   const { settings } = useEventContext();
@@ -28,15 +29,14 @@ const Holidays = () => {
       };
   }, []);
 
+  const pageStyle = buildBackgroundStyle(settings.holidaysBg, {
+    overlayStart: 'rgba(255,255,255,0.8)',
+  });
+
   return (
     <div 
-        className="min-h-full p-4 pb-20"
-        style={settings.holidaysBg ? {
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url(${settings.holidaysBg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed'
-        } : {}}
+        className="min-h-screen p-4 pb-20"
+        style={pageStyle}
     >
       <header className="mb-6 mt-2">
         <h1 className="text-2xl font-bold text-gray-800">节假日</h1>

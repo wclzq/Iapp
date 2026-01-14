@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateCountdown } from '../utils/dateUtils';
-import { Calendar, Heart, Gift, Plane, Star } from 'lucide-react';
+import { Calendar, Heart, Gift, Plane, Star, Edit2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -38,11 +38,27 @@ const EventCard = ({ event }) => {
       return null;
   };
 
+  const isEditable = !event.isStatic;
+
+  const handleCardClick = () => {
+    if (isEditable) {
+        navigate(`/event/${event.id}`);
+    }
+  };
+
+  const handleEditClick = (e) => {
+    e.stopPropagation();
+    if (isEditable) {
+        navigate(`/edit/${event.id}`);
+    }
+  };
+
   return (
     <div 
-      onClick={() => navigate(event.isStatic ? '#' : `/event/${event.id}`)}
+      onClick={handleCardClick}
       className={cn(
-        "relative overflow-hidden rounded-2xl p-4 mb-4 shadow-sm transition-all active:scale-95 cursor-pointer border",
+        "relative overflow-hidden rounded-2xl p-4 mb-4 shadow-sm transition-all border",
+        isEditable ? "active:scale-95 cursor-pointer" : "cursor-default",
         event.backgroundImage ? "text-white border-transparent" : "bg-white text-gray-800 border-primary-50"
       )}
       style={event.backgroundImage ? {
@@ -53,6 +69,21 @@ const EventCard = ({ event }) => {
       } : {}}
     >
       <div className="flex justify-between items-start">
+        {!event.isStatic && (
+            <button
+              type="button"
+              onClick={handleEditClick}
+              className={cn(
+                "absolute top-3 right-3 p-1.5 rounded-full border z-10 transition-colors",
+                event.backgroundImage
+                  ? "bg-black/40 text-white border-white/40 hover:bg-black/50"
+                  : "bg-white text-gray-500 border-gray-200 hover:text-gray-700"
+              )}
+              aria-label="编辑倒数日"
+            >
+                <Edit2 className="w-4 h-4" />
+            </button>
+        )}
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             {getIcon()}
@@ -86,7 +117,7 @@ const EventCard = ({ event }) => {
       </div>
       
       {event.topSticky && (
-          <div className="absolute top-0 right-0 bg-yellow-400 w-3 h-3 rounded-bl-lg"></div>
+          <div className="absolute top-0 left-0 bg-yellow-400 w-3 h-3 rounded-br-lg"></div>
       )}
     </div>
   );
