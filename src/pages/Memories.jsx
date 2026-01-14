@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useEventContext } from '../context/EventContext';
 import { Heart, Maximize2, X, Upload, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
-import { buildBackgroundStyle } from '../utils/backgroundStyle';
+import PageBackground from '../components/PageBackground';
 
 const Memories = () => {
   const { memories, saveMemory, settings } = useEventContext();
@@ -166,31 +166,32 @@ const Memories = () => {
       return cells;
   };
 
-  const pageStyle = buildBackgroundStyle(settings.memoriesBg, {
-    overlayStart: 'rgba(255,255,255,0.7)',
-  });
-
   return (
-    <div 
-        className="min-h-screen flex flex-col items-center py-6 px-4 pb-24"
-        style={pageStyle}
+    <div
+        className="relative flex h-full min-h-full flex-col"
     >
+        <PageBackground image={settings.memoriesBg} overlayStart="rgba(255,255,255,0.25)" />
+        <div className="px-4 pt-6 pb-3 flex flex-col items-center flex-shrink-0">
         {/* Progress Bar */}
-        <div className="w-full max-w-xs mb-8">
+        <div className="w-full max-w-xs">
             <div className="flex justify-between text-xs text-primary mb-1 font-medium">
                 <span>我们的一点一滴</span>
                 <span>{filledSlots}/{totalSlots}</span>
             </div>
             <div className="w-full bg-white/50 rounded-full h-2.5 backdrop-blur-sm overflow-hidden border border-white/50">
-                <div 
-                    className="bg-primary h-2.5 rounded-full transition-all duration-1000 ease-out" 
+                <div
+                    className="bg-primary h-2.5 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${progressPercent}%` }}
                 />
             </div>
         </div>
 
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-24 flex justify-center flex-shrink">
         <div className="grid grid-cols-11 gap-1 w-full max-w-sm select-none">
             {renderGrid()}
+        </div>
         </div>
 
         {/* Modal */}

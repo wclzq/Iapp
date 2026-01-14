@@ -36,8 +36,11 @@ const Settings = () => {
   ];
 
   return (
-    <div className="p-4 pb-20">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6 mt-2">设置</h1>
+    <div className="relative flex h-full min-h-full flex-col">
+      <div className="px-4 pt-6 pb-3 flex-shrink-0">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2 mt-1">设置</h1>
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-24 flex-shrink">
 
       {/* Theme Switcher */}
       <h2 className="text-sm font-bold text-gray-500 mb-2 px-1">主题颜色</h2>
@@ -180,6 +183,7 @@ const Settings = () => {
       <p className="text-center text-xs text-gray-300 mt-10">
           Made with ❤️ by wangchaolei
       </p>
+      </div>
     </div>
   );
 };

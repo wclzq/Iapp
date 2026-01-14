@@ -94,3 +94,4 @@ android/
 # For this project, 'android' folder IS a build artifact of `npx cap add android`.
 # Ideally, we rely on CI to generate it.
 # However, `capacitor.config.json` is tracked.
+.ace-tool/

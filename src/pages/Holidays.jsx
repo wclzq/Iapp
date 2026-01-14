@@ -3,7 +3,7 @@ import { useEventContext } from '../context/EventContext';
 import EventCard from '../components/EventCard';
 import { getChineseHolidays, getWeekRemainingDays } from '../utils/dateUtils';
 import dayjs from 'dayjs';
-import { buildBackgroundStyle } from '../utils/backgroundStyle';
+import PageBackground from '../components/PageBackground';
 
 const Holidays = () => {
   const { settings } = useEventContext();
@@ -29,19 +29,20 @@ const Holidays = () => {
       };
   }, []);
 
-  const pageStyle = buildBackgroundStyle(settings.holidaysBg, {
-    overlayStart: 'rgba(255,255,255,0.45)',
-  });
-
   return (
-    <div 
-        className="min-h-screen p-4 pb-20"
-        style={pageStyle}
+    <div
+        className="relative flex h-full min-h-full flex-col"
     >
-      <header className="mb-6 mt-2">
-        <h1 className="text-2xl font-bold text-gray-800">节假日</h1>
-        <p className="text-gray-500 text-sm">生活不只是工作，还有诗和远方</p>
-      </header>
+      <PageBackground image={settings.holidaysBg} overlayStart="rgba(255,255,255,0.25)" />
+
+      <div className="px-4 pt-4 pb-3 flex-shrink-0">
+        <header className="mb-2 mt-1">
+          <h1 className="text-2xl font-bold text-gray-800">节假日</h1>
+          <p className="text-gray-500 text-sm">生活不只是工作，还有诗和远方</p>
+        </header>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-24 flex-shrink">
       
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-3 mb-8">
@@ -63,6 +64,7 @@ const Holidays = () => {
         {holidays.map(event => (
           <EventCard key={event.id} event={event} />
         ))}
+      </div>
       </div>
     </div>
   );

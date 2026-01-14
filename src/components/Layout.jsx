@@ -9,7 +9,7 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen bg-page flex flex-col transition-colors duration-300">
-      <main className="flex-1 overflow-y-auto pb-20">
+      <main className="flex-1 min-h-0 overflow-hidden">
         <Outlet />
       </main>
 
