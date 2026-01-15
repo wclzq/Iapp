@@ -34,7 +34,7 @@ const Home = () => {
     <div
         className="relative flex h-full min-h-full flex-col"
     >
-      <PageBackground image={settings.homeBg} overlayStart="rgba(255,255,255,0.25)" />
+      <PageBackground image={settings.homeBg} />
       <div className="px-4 pt-6 pb-3 flex-shrink-0">
         <header className="mb-4 mt-1">
           <h1 className="text-3xl font-bold text-gray-800 tracking-tight">记录</h1>

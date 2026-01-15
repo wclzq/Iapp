@@ -170,7 +170,7 @@ const Memories = () => {
     <div
         className="relative flex h-full min-h-full flex-col"
     >
-        <PageBackground image={settings.memoriesBg} overlayStart="rgba(255,255,255,0.25)" />
+        <PageBackground image={settings.memoriesBg} />
         <div className="px-4 pt-6 pb-3 flex flex-col items-center flex-shrink-0">
         {/* Progress Bar */}
         <div className="w-full max-w-xs">

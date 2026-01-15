@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateCountdown } from '../utils/dateUtils';
 import { Calendar, Heart, Gift, Plane, Star, Edit2 } from 'lucide-react';
@@ -57,11 +57,11 @@ const EventCard = ({ event }) => {
     <div
       onClick={handleCardClick}
       className={cn(
-        "relative overflow-hidden rounded-2xl p-4 mb-4 transition-all duration-300 border",
-        isEditable ? "active:scale-[0.98] cursor-pointer hover:shadow-xl hover:-translate-y-1" : "cursor-default",
+        "relative overflow-hidden rounded-2xl p-4 mb-4 transition-all duration-200 border",
+        isEditable ? "active:scale-[0.97] cursor-pointer" : "cursor-default",
         event.backgroundImage
-          ? "text-white border-transparent shadow-lg"
-          : "bg-white text-gray-800 border-primary-50 shadow-md hover:shadow-lg"
+          ? "text-white border-transparent shadow-xl"
+          : "bg-white text-gray-800 border-primary-50 shadow-lg"
       )}
       style={event.backgroundImage ? {
         backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url(${event.backgroundImage})`,

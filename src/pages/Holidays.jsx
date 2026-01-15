@@ -33,7 +33,7 @@ const Holidays = () => {
     <div
         className="relative flex h-full min-h-full flex-col"
     >
-      <PageBackground image={settings.holidaysBg} overlayStart="rgba(255,255,255,0.25)" />
+      <PageBackground image={settings.holidaysBg} />
 
       <div className="px-4 pt-4 pb-3 flex-shrink-0">
         <header className="mb-2 mt-1">

@@ -1,12 +1,14 @@
 import React, { useRef } from 'react';
 import { useEventContext } from '../context/EventContext';
 import { Info, Image as ImageIcon, X, Palette } from 'lucide-react';
+import PageBackground from '../components/PageBackground';
 
 const Settings = () => {
   const { settings, updateSettings } = useEventContext();
   const homeBgRef = useRef(null);
   const holidaysBgRef = useRef(null);
   const memoriesBgRef = useRef(null);
+  const settingsBgRef = useRef(null);
 
   const handleImageUpload = (e, key) => {
     const file = e.target.files[0];
@@ -37,6 +39,7 @@ const Settings = () => {
 
   return (
     <div className="relative flex h-full min-h-full flex-col">
+      <PageBackground image={settings.settingsBg} />
       <div className="px-4 pt-6 pb-3 flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-800 mb-2 mt-1">设置</h1>
       </div>
@@ -143,7 +146,7 @@ const Settings = () => {
               {settings.memoriesBg ? (
                  <div className="relative w-full h-32 rounded-lg overflow-hidden group">
                      <img src={settings.memoriesBg} alt="Memories Background" className="w-full h-full object-cover" />
-                     <button 
+                     <button
                         onClick={() => removeImage('memoriesBg')}
                         className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white"
                      >
@@ -151,7 +154,7 @@ const Settings = () => {
                      </button>
                  </div>
               ) : (
-                 <div 
+                 <div
                     onClick={() => memoriesBgRef.current?.click()}
                     className="w-full h-24 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-primary-400 hover:text-primary transition-colors"
                  >
@@ -159,12 +162,43 @@ const Settings = () => {
                      <span className="text-xs mt-1">点击上传</span>
                  </div>
               )}
-              <input 
-                type="file" 
-                ref={memoriesBgRef} 
-                className="hidden" 
-                accept="image/*" 
-                onChange={(e) => handleImageUpload(e, 'memoriesBg')} 
+              <input
+                type="file"
+                ref={memoriesBgRef}
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, 'memoriesBg')}
+              />
+          </div>
+
+          {/* Settings Background */}
+          <div>
+              <label className="block text-sm text-gray-700 mb-2">设置页背景</label>
+              {settings.settingsBg ? (
+                 <div className="relative w-full h-32 rounded-lg overflow-hidden group">
+                     <img src={settings.settingsBg} alt="Settings Background" className="w-full h-full object-cover" />
+                     <button
+                        onClick={() => removeImage('settingsBg')}
+                        className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white"
+                     >
+                         <X size={16} />
+                     </button>
+                 </div>
+              ) : (
+                 <div
+                    onClick={() => settingsBgRef.current?.click()}
+                    className="w-full h-24 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-primary-400 hover:text-primary transition-colors"
+                 >
+                     <ImageIcon size={24} />
+                     <span className="text-xs mt-1">点击上传</span>
+                 </div>
+              )}
+              <input
+                type="file"
+                ref={settingsBgRef}
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, 'settingsBg')}
               />
           </div>
 
