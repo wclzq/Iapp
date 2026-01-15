@@ -54,15 +54,17 @@ const EventCard = ({ event }) => {
   };
 
   return (
-    <div 
+    <div
       onClick={handleCardClick}
       className={cn(
-        "relative overflow-hidden rounded-2xl p-4 mb-4 shadow-sm transition-all border",
-        isEditable ? "active:scale-95 cursor-pointer" : "cursor-default",
-        event.backgroundImage ? "text-white border-transparent" : "bg-white text-gray-800 border-primary-50"
+        "relative overflow-hidden rounded-2xl p-4 mb-4 transition-all duration-300 border",
+        isEditable ? "active:scale-[0.98] cursor-pointer hover:shadow-xl hover:-translate-y-1" : "cursor-default",
+        event.backgroundImage
+          ? "text-white border-transparent shadow-lg"
+          : "bg-white text-gray-800 border-primary-50 shadow-md hover:shadow-lg"
       )}
       style={event.backgroundImage ? {
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(${event.backgroundImage})`,
+        backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url(${event.backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         minHeight: '120px'
@@ -117,7 +119,11 @@ const EventCard = ({ event }) => {
       </div>
       
       {event.topSticky && (
-          <div className="absolute top-0 left-0 bg-yellow-400 w-3 h-3 rounded-br-lg"></div>
+          <div className="absolute top-0 left-0">
+            <div className="relative">
+              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 drop-shadow-md" />
+            </div>
+          </div>
       )}
     </div>
   );

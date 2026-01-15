@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useEventContext } from '../context/EventContext';
 import EventCard from '../components/EventCard';
 import { calculateCountdown } from '../utils/dateUtils';
+import { Sparkles } from 'lucide-react';
 import PageBackground from '../components/PageBackground';
 
 const Home = () => {
@@ -44,7 +45,9 @@ const Home = () => {
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-24 flex-shrink">
         {sortedEvents.length === 0 ? (
           <div className="text-center py-20">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">✨</div>
+              <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Sparkles className="w-10 h-10 text-primary" />
+              </div>
               <p className="text-gray-400 font-medium">还没有添加倒数日</p>
               <p className="text-sm text-gray-300 mt-2">点击下方 + 号开始记录</p>
           </div>
